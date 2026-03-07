@@ -40,12 +40,11 @@ export default function Home() {
     chartData = data.hourly.time.map((timeStr: string, index: number) => {
       // 日付の文字列（"2026-03-07T12:00"）を「3月7日 12時」のように読みやすくする
       const date = new Date(timeStr);
-      const formattedTime = date.toLocaleString("ja-JP", {
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-      });
-
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hour = String(date.getHours()).padStart(2, "0");
+      const minute = String(date.getMinutes()).padStart(2, "0");
+      const formattedTime = `${month}/${day} ${hour}:${minute}`;
       return {
         time: formattedTime,
         // ここが重要！今選ばれている指標（metric）の数値をセットする
@@ -54,41 +53,64 @@ export default function Home() {
     });
   }
 
+  // ... (StateやSWRのロジックは一切変更なし！) ...
+
   return (
-    <main className="pb-10">
-      <h1 className="text-center text-5xl container mx-auto my-5">
-        Weather Forecast
-      </h1>
-      <h2 className="text-center container mx-auto mb-8">
-        リアルタイム天気予報ダッシュボード
-      </h2>
+    // ★大枠1: 背景をただのグレーから、美しい「空」を思わせるグラデーションに変更！
+    // 画面全体に広がるように `min-h-screen` と `bg-gradient-to-br` を使用
+    <main className="min-h-screen bg-linear-to-br from-blue-100 via-blue-50 to-indigo-200 pb-12 overflow-x-hidden font-sans text-gray-800">
+      {/* ★大枠2: ヘッダー部分に余白を持たせ、タイトルをアプリ風に */}
+      <div className="w-full max-w-7xl mx-auto pt-10 px-4 md:px-8">
+        {/* ★大枠3: タイトルを「ただの文字」から「グラデーションテキスト」にして一気に垢抜けさせる */}
+        <h1 className="text-center text-4xl md:text-5xl font-extrabold mb-3 tracking-tight">
+          <span className="bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-indigo-500">
+            Weather Forecast
+          </span>
+        </h1>
 
-      <ControlPanel
-        city={city}
-        setCity={setCity}
-        metric={metric}
-        setMetric={setMetric}
-        range={range}
-        setRange={setRange}
-        unit={unit}
-        setUnit={setUnit}
-      />
+        <h2 className="text-center text-sm md:text-base mb-10 text-gray-500 font-medium tracking-wide">
+          リアルタイム天気予報ダッシュボード
+        </h2>
 
-      {/* 6. ローディング中とエラー時の表示（UXの加点ポイント！） */}
-      {isLoading ? (
-        <div className="mx-8 bg-white p-6 rounded-lg shadow-md border border-gray-200 h-[400px] flex items-center justify-center">
-          <p className="text-gray-500 font-bold animate-pulse">
-            天気データを読み込み中...
-          </p>
+        {/* ーーー ここから下がコンポーネントエリア ーーー */}
+
+        {/* ControlPanelを少し浮かせるための余白調整 */}
+        <div className="mb-8">
+          <ControlPanel
+            city={city}
+            setCity={setCity}
+            metric={metric}
+            setMetric={setMetric}
+            range={range}
+            setRange={setRange}
+            unit={unit}
+            setUnit={setUnit}
+          />
         </div>
-      ) : error ? (
-        <div className="mx-8 bg-red-50 p-6 rounded-lg shadow-md border border-red-200 h-[400px] flex items-center justify-center">
-          <p className="text-red-500 font-bold">データの取得に失敗しました。</p>
-        </div>
-      ) : (
-        /* データの準備ができたらグラフを表示！ダミーデータではなく、整形したchartDataを渡す */
-        <WeatherChart data={chartData} metric={metric} unit={unit} />
-      )}
+
+        {/* グラフエリア */}
+        {isLoading ? (
+          <div className="w-full bg-white/60 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-white/50 h-[400px] flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-blue-600 font-bold animate-pulse">
+                データを取得中...
+              </p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="w-full bg-red-50/80 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-red-100 h-[400px] flex flex-col items-center justify-center">
+            <p className="text-red-500 font-bold mb-2">
+              データの取得に失敗しました
+            </p>
+            <p className="text-sm text-red-400">
+              しばらく経ってから再度お試しください
+            </p>
+          </div>
+        ) : (
+          <WeatherChart data={chartData} metric={metric} unit={unit} />
+        )}
+      </div>
     </main>
   );
 }
