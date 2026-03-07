@@ -12,14 +12,18 @@ import {
   Legend,
 } from "recharts";
 
-// 親（page.tsx）から受け取るデータの型（ルール）を決める
 interface WeatherChartProps {
-  data: any[]; // いったんanyにしておきます
+  data: any[];
   metric: string;
+  unit: string; // ★追加: unit（celsius/fahrenheit）を親から受け取る
 }
 
-export default function WeatherChart({ data, metric }: WeatherChartProps) {
-  // 選ばれている指標に合わせて、グラフの日本語名を変える関数
+export default function WeatherChart({
+  data,
+  metric,
+  unit,
+}: WeatherChartProps) {
+  // 指標名を取得する関数
   const getMetricName = (metricValue: string) => {
     switch (metricValue) {
       case "temperature_2m":
@@ -35,6 +39,24 @@ export default function WeatherChart({ data, metric }: WeatherChartProps) {
     }
   };
 
+  // ★修正：単位を正確に返すようにしました
+  const getUnitSymbol = (metricValue: string) => {
+    switch (metricValue) {
+      case "temperature_2m":
+      case "apparent_temperature":
+        return unit === "celsius" ? "℃" : "℉"; // unitの状態を見て切り替え
+      case "precipitation":
+        return "mm";
+      case "wind_speed_10m":
+        return "km/h";
+      default:
+        return "";
+    }
+  };
+
+  const unitSymbol = getUnitSymbol(metric);
+  const displayName = `${getMetricName(metric)} (${unitSymbol})`;
+
   return (
     <div className="mx-8 bg-white p-6 rounded-lg shadow-md border border-gray-200 h-[400px]">
       <ResponsiveContainer
@@ -44,7 +66,7 @@ export default function WeatherChart({ data, metric }: WeatherChartProps) {
       >
         <LineChart
           data={data}
-          margin={{ top: 5, right: 30, bottom: 20, left: 0 }}
+          margin={{ top: 5, right: 30, bottom: 20, left: 10 }}
           style={{ outline: "none" }}
         >
           <CartesianGrid
@@ -52,20 +74,33 @@ export default function WeatherChart({ data, metric }: WeatherChartProps) {
             stroke="#e5e7eb"
             vertical={false}
           />
+
           <XAxis
             dataKey="time"
             stroke="#6b7280"
             tick={{ fontSize: 12 }}
             tickMargin={10}
           />
-          <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} />
+
+          <YAxis
+            stroke="#6b7280"
+            tick={{ fontSize: 12 }}
+            // YAxisの目盛りにも単位を表示
+            tickFormatter={(value) => `${value}${unitSymbol}`}
+          />
+
           <Tooltip
             contentStyle={{
               borderRadius: "8px",
               border: "none",
               boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
             }}
+            formatter={(value: any) => [
+              `${value} ${unitSymbol}`,
+              getMetricName(metric),
+            ]}
           />
+
           <Legend
             verticalAlign="top"
             align="left"
@@ -73,10 +108,12 @@ export default function WeatherChart({ data, metric }: WeatherChartProps) {
             iconType="circle"
             wrapperStyle={{ paddingBottom: "10px" }}
           />
+
           <Line
             type="monotone"
             dataKey={metric}
-            name={getMetricName(metric)}
+            // ★ここを displayName にすることで、Legendに「気温 (℃)」のように表示されます
+            name={displayName}
             stroke="#3b82f6"
             strokeWidth={3}
             dot={{ r: 4, strokeWidth: 2 }}

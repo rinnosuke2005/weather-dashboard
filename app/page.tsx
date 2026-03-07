@@ -2,24 +2,57 @@
 "use client";
 
 import { useState } from "react";
+import useSWR from "swr";
 import ControlPanel from "./components/ControlPanel";
 import WeatherChart from "./components/WeatherChart";
-// 仮のデータ
-const dummyData = [
-  { time: "12:00", temperature_2m: 20 },
-  { time: "15:00", temperature_2m: 22 },
-  { time: "18:00", temperature_2m: 19 },
-  { time: "21:00", temperature_2m: 16 },
-  { time: "00:00", temperature_2m: 15 },
-  { time: "03:00", temperature_2m: 14 },
-];
+import { CITY_COORDINATES, fetcher } from "@/app/utils/constants";
+
+// const dummyData = [
+//   { time: "12:00", temperature_2m: 20 },
+//   { time: "15:00", temperature_2m: 22 },
+//   { time: "18:00", temperature_2m: 19 },
+//   { time: "21:00", temperature_2m: 16 },
+//   { time: "00:00", temperature_2m: 15 },
+//   { time: "03:00", temperature_2m: 14 },
+// ];
 
 export default function Home() {
-  // すべての状態（State）はここで一元管理する
   const [city, setCity] = useState("tokyo");
   const [metric, setMetric] = useState("temperature_2m");
   const [range, setRange] = useState("48h");
   const [unit, setUnit] = useState<string>("celsius");
+
+  // 1. 選ばれている都市の「緯度・経度」を取得
+  const { lat, lon } = CITY_COORDINATES[city];
+
+  // 2. 期間（48時間 or 7日間）から、APIに渡す日数を決定
+  const forecastDays = range === "48h" ? 2 : 7;
+
+  // 3. APIのURLを動的に組み立てる（Stateが変わるたびにここも変わります！）
+  const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,apparent_temperature,precipitation,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=${unit}&timezone=auto&forecast_days=${forecastDays}`;
+  // 4. SWRの魔法！URLとfetcherを渡すだけで、データの取得・キャッシュ・ローディング状態を全部やってくれる
+  const { data, error, isLoading } = useSWR(apiUrl, fetcher);
+
+  // 5. Open-Meteoのデータを、Rechartsが読める形に整形（フォーマット）する
+  let chartData = [];
+  if (data && data.hourly) {
+    // data.hourly.time の配列をぐるぐる回して、Recharts用の配列を作る
+    chartData = data.hourly.time.map((timeStr: string, index: number) => {
+      // 日付の文字列（"2026-03-07T12:00"）を「3月7日 12時」のように読みやすくする
+      const date = new Date(timeStr);
+      const formattedTime = date.toLocaleString("ja-JP", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+      });
+
+      return {
+        time: formattedTime,
+        // ここが重要！今選ばれている指標（metric）の数値をセットする
+        [metric]: data.hourly[metric][index],
+      };
+    });
+  }
 
   return (
     <main className="pb-10">
@@ -30,19 +63,32 @@ export default function Home() {
         リアルタイム天気予報ダッシュボード
       </h2>
 
-      {/* 切り出した操作パネルを呼び出し、Propsを渡す */}
-      <ControlPanel 
-        city={city} setCity={setCity}
-        metric={metric} setMetric={setMetric}
-        range={range} setRange={setRange}
-        unit={unit} setUnit={setUnit}
+      <ControlPanel
+        city={city}
+        setCity={setCity}
+        metric={metric}
+        setMetric={setMetric}
+        range={range}
+        setRange={setRange}
+        unit={unit}
+        setUnit={setUnit}
       />
 
-      {/* 切り出したグラフを呼び出し、Propsを渡す */}
-      <WeatherChart 
-        data={dummyData} 
-        metric={metric} 
-      />
+      {/* 6. ローディング中とエラー時の表示（UXの加点ポイント！） */}
+      {isLoading ? (
+        <div className="mx-8 bg-white p-6 rounded-lg shadow-md border border-gray-200 h-[400px] flex items-center justify-center">
+          <p className="text-gray-500 font-bold animate-pulse">
+            天気データを読み込み中...
+          </p>
+        </div>
+      ) : error ? (
+        <div className="mx-8 bg-red-50 p-6 rounded-lg shadow-md border border-red-200 h-[400px] flex items-center justify-center">
+          <p className="text-red-500 font-bold">データの取得に失敗しました。</p>
+        </div>
+      ) : (
+        /* データの準備ができたらグラフを表示！ダミーデータではなく、整形したchartDataを渡す */
+        <WeatherChart data={chartData} metric={metric} unit={unit} />
+      )}
     </main>
   );
 }
