@@ -1,26 +1,36 @@
 // app/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 import ControlPanel from "./components/ControlPanel";
 import WeatherChart from "./components/WeatherChart";
 import { CITY_COORDINATES, fetcher } from "@/app/utils/constants";
-
-// const dummyData = [
-//   { time: "12:00", temperature_2m: 20 },
-//   { time: "15:00", temperature_2m: 22 },
-//   { time: "18:00", temperature_2m: 19 },
-//   { time: "21:00", temperature_2m: 16 },
-//   { time: "00:00", temperature_2m: 15 },
-//   { time: "03:00", temperature_2m: 14 },
-// ];
 
 export default function Home() {
   const [city, setCity] = useState("tokyo");
   const [metric, setMetric] = useState("temperature_2m");
   const [range, setRange] = useState("48h");
   const [unit, setUnit] = useState<string>("celsius");
+
+  useEffect(() => {
+    const savedCity = localStorage.getItem("weather_city");
+    const savedMetric = localStorage.getItem("weather_metric");
+    const savedRange = localStorage.getItem("weather_range");
+    const savedUnit = localStorage.getItem("weather_unit");
+
+    if (savedCity) setCity(savedCity);
+    if (savedMetric) setMetric(savedMetric);
+    if (savedRange) setRange(savedRange);
+    if (savedUnit) setUnit(savedUnit);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("weather_city", city);
+    localStorage.setItem("weather_metric", metric);
+    localStorage.setItem("weather_range", range);
+    localStorage.setItem("weather_unit", unit);
+  }, [city, metric, range, unit]);
 
   // 1. 選ばれている都市の「緯度・経度」を取得
   const { lat, lon } = CITY_COORDINATES[city];
@@ -31,7 +41,7 @@ export default function Home() {
   // 3. APIのURLを動的に組み立てる（Stateが変わるたびにここも変わります！）
   const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,apparent_temperature,precipitation,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=${unit}&timezone=auto&forecast_days=${forecastDays}`;
   // 4. SWRの魔法！URLとfetcherを渡すだけで、データの取得・キャッシュ・ローディング状態を全部やってくれる
-  const { data, error, isLoading } = useSWR(apiUrl, fetcher);
+  const { data, error, isLoading, mutate } = useSWR(apiUrl, fetcher);
 
   // 5. Open-Meteoのデータを、Rechartsが読める形に整形（フォーマット）する
   let chartData = [];
@@ -100,12 +110,15 @@ export default function Home() {
           </div>
         ) : error ? (
           <div className="w-full bg-red-50/80 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-red-100 h-[400px] flex flex-col items-center justify-center">
-            <p className="text-red-500 font-bold mb-2">
+            <p className="text-red-500 font-bold mb-4">
               データの取得に失敗しました
             </p>
-            <p className="text-sm text-red-400">
-              しばらく経ってから再度お試しください
-            </p>
+            <button
+              onClick={() => mutate()}
+              className="px-6 py-2 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-all shadow-md active:scale-95"
+            >
+              再読み込みを試す
+            </button>
           </div>
         ) : (
           <WeatherChart data={chartData} metric={metric} unit={unit} />
