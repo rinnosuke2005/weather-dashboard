@@ -3,75 +3,19 @@
 
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import ControlPanel from "./components/ControlPanel";
-import WeatherChart from "./components/WeatherChart";
-import { CITY_COORDINATES, fetcher } from "@/app/utils/constants";
+import ControlPanel from "../components/ControlPanel";
+import WeatherChart from "../components/WeatherChart";
+import { useWeatherData } from "@/hooks/useWeatherData";
+import { useWeatherSettings } from "@/hooks/useWeatherSettings";
 
 export default function Home() {
-  const [city, setCity] = useState("tokyo");
-  const [metric, setMetric] = useState("temperature_2m");
-  const [range, setRange] = useState("48h");
-  const [unit, setUnit] = useState<string>("celsius");
+  const { city, setCity, metric, setMetric, range, setRange, unit, setUnit } = useWeatherSettings();
 
-  useEffect(() => {
-    const savedCity = localStorage.getItem("weather_city");
-    const savedMetric = localStorage.getItem("weather_metric");
-    const savedRange = localStorage.getItem("weather_range");
-    const savedUnit = localStorage.getItem("weather_unit");
-
-    if (savedCity) setCity(savedCity);
-    if (savedMetric) setMetric(savedMetric);
-    if (savedRange) setRange(savedRange);
-    if (savedUnit) setUnit(savedUnit);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("weather_city", city);
-    localStorage.setItem("weather_metric", metric);
-    localStorage.setItem("weather_range", range);
-    localStorage.setItem("weather_unit", unit);
-  }, [city, metric, range, unit]);
-
-  // 1. 選ばれている都市の「緯度・経度」を取得
-  const { lat, lon } = CITY_COORDINATES[city];
-
-  // 2. 期間（48時間 or 7日間）から、APIに渡す日数を決定
-  const forecastDays = range === "48h" ? 2 : 7;
-
-  // 3. APIのURLを動的に組み立てる（Stateが変わるたびにここも変わります！）
-  const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,apparent_temperature,precipitation,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&temperature_unit=${unit}&timezone=auto&forecast_days=${forecastDays}`;
-  // 4. SWRの魔法！URLとfetcherを渡すだけで、データの取得・キャッシュ・ローディング状態を全部やってくれる
-  const { data, error, isLoading, mutate } = useSWR(apiUrl, fetcher);
-
-  // 5. Open-Meteoのデータを、Rechartsが読める形に整形（フォーマット）する
-  let chartData = [];
-  if (data && data.hourly) {
-    // data.hourly.time の配列をぐるぐる回して、Recharts用の配列を作る
-    chartData = data.hourly.time.map((timeStr: string, index: number) => {
-      // 日付の文字列（"2026-03-07T12:00"）を「3月7日 12時」のように読みやすくする
-      const date = new Date(timeStr);
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      const hour = String(date.getHours()).padStart(2, "0");
-      const minute = String(date.getMinutes()).padStart(2, "0");
-      const formattedTime = `${month}/${day} ${hour}:${minute}`;
-      return {
-        time: formattedTime,
-        // ここが重要！今選ばれている指標（metric）の数値をセットする
-        [metric]: data.hourly[metric][index],
-      };
-    });
-  }
-
-  // ... (StateやSWRのロジックは一切変更なし！) ...
+  const { chartData, error, isLoading, mutate } = useWeatherData(city, range, unit, metric);
 
   return (
-    // ★大枠1: 背景をただのグレーから、美しい「空」を思わせるグラデーションに変更！
-    // 画面全体に広がるように `min-h-screen` と `bg-gradient-to-br` を使用
     <main className="min-h-screen bg-linear-to-br from-blue-100 via-blue-50 to-indigo-200 pb-12 overflow-x-hidden font-sans text-gray-800">
-      {/* ★大枠2: ヘッダー部分に余白を持たせ、タイトルをアプリ風に */}
       <div className="w-full max-w-7xl mx-auto pt-10 px-4 md:px-8">
-        {/* ★大枠3: タイトルを「ただの文字」から「グラデーションテキスト」にして一気に垢抜けさせる */}
         <h1 className="text-center text-4xl md:text-5xl font-extrabold mb-3 tracking-tight">
           <span className="bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-indigo-500">
             Weather Forecast
@@ -82,9 +26,8 @@ export default function Home() {
           リアルタイム天気予報ダッシュボード
         </h2>
 
-        {/* ーーー ここから下がコンポーネントエリア ーーー */}
 
-        {/* ControlPanelを少し浮かせるための余白調整 */}
+        {/* ControlPanel */}
         <div className="mb-8">
           <ControlPanel
             city={city}

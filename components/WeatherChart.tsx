@@ -98,11 +98,11 @@ const renderCustomAxisTick = (props: any) => {
             x={0}
             y={0}
             dy={10}
-            textAnchor="end" // 右端を軸に合わせる
+            textAnchor="end" 
             fill="#374151"
             fontSize={11}
             fontWeight={600}
-            transform="rotate(-35)" // ★ ここで35度斜めにする
+            transform="rotate(-35)" 
           >
             {payload.value}
           </text>
