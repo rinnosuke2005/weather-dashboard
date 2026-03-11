@@ -9,9 +9,15 @@ import { useWeatherData } from "@/hooks/useWeatherData";
 import { useWeatherSettings } from "@/hooks/useWeatherSettings";
 
 export default function Home() {
-  const { city, setCity, metric, setMetric, range, setRange, unit, setUnit } = useWeatherSettings();
+  const { city, setCity, metric, setMetric, range, setRange, unit, setUnit } =
+    useWeatherSettings();
 
-  const { chartData, error, isLoading, mutate } = useWeatherData(city, range, unit, metric);
+  const { chartData, error, isLoading, mutate } = useWeatherData(
+    city,
+    range,
+    unit,
+    metric,
+  );
 
   return (
     <main className="min-h-screen bg-linear-to-br from-blue-100 via-blue-50 to-indigo-200 pb-12 overflow-x-hidden font-sans text-gray-800">
@@ -25,7 +31,6 @@ export default function Home() {
         <h2 className="text-center text-sm md:text-base mb-10 text-gray-500 font-medium tracking-wide">
           リアルタイム天気予報ダッシュボード
         </h2>
-
 
         {/* ControlPanel */}
         <div className="mb-8">
@@ -67,6 +72,21 @@ export default function Home() {
           <WeatherChart data={chartData} metric={metric} unit={unit} />
         )}
       </div>
+
+      {/* ：Open-Meteoの帰属表示（ライセンス遵守） */}
+      <footer className="w-full text-center pt-8 pb-4">
+        <p className="text-xs text-gray-500 font-medium tracking-wide">
+          Weather data by{" "}
+          <a
+            href="https://open-meteo.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:text-blue-600 hover:underline transition-colors"
+          >
+            Open-Meteo.com
+          </a>
+        </p>
+      </footer>
     </main>
   );
 }
