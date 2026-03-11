@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Weather Dashboard (天気予報ダッシュボード)
+Open-Meteo APIを活用し、指定した都市の天気情報を時系列チャートで直感的に確認できるSPA（Single Page Application）です。
 
-## Getting Started
+1. 起動手順
+ローカル環境で実行するための手順です。
 
-First, run the development server:
+前提条件
+Node.js (v18以降を推奨)
 
-```bash
+npm または yarn
+
+セットアップ
+Bash
+# リポジトリのクローン後、依存パッケージをインストール
+npm install
+
+# 開発サーバーの起動
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+起動後、ブラウザで http://localhost:3000 にアクセスしてください。
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. 技術選定理由
+フレームワーク: Next.js (App Router) / React
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+モダンなReact機能の活用と、コンポーネント指向による保守性の高いUI構築のため。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+データフェッチ: SWR
 
-## Learn More
+要件である「無駄な再フェッチ/再描画の抑制」を満たすため。フォーカス時の自動再検証や強力なキャッシュ機能により、タブ切り替え時のUXを大幅に向上させています。
 
-To learn more about Next.js, take a look at the following resources:
+スタイリング: Tailwind CSS
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+ユーティリティクラスを用いて、グラスモーフィズムなどのモダンで複雑なUIを高速かつ一貫性をもって実装するため。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+チャート: Recharts
 
-## Deploy on Vercel
+Reactとの親和性が非常に高く、レスポンシブ対応やカスタムTooltip/ドットの実装が柔軟に行えるため選定しました。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. ディレクトリ構成
+関心の分離（Separation of Concerns）を意識し、ロジックとUIを明確に分割しています。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Plaintext
+├── app/
+│   ├── globals.css      # 全体スタイル
+│   ├── layout.tsx       # ルートレイアウト
+│   └── page.tsx         # メインページ（各コンポーネントの統合）
+├── components/          # UIコンポーネント
+│   ├── ControlPanel.tsx # 操作パネル（都市・指標・期間・単位の選択）
+│   └── WeatherChart.tsx # グラフ描画コンポーネント
+└── hooks/               # カスタムフック（ビジネスロジックの分離）
+    ├── useWeatherData.ts     # SWRを用いたAPI通信とデータ整形
+    └── useWeatherSettings.ts # LocalStorageを利用した状態・設定管理
+4. 工夫点
+アーキテクチャ設計 (カスタムフックの活用)
+
+UIコンポーネントが肥大化するのを防ぐため、API通信（useWeatherData）と状態管理（useWeatherSettings）をカスタムフックとして分離し、見通しの良い設計にしました。
+
+アクセシビリティ (a11y) への配慮
+
+マウス操作だけでなく、キーボード（Tabキーや矢印キー）のみでもすべての操作が完結するように実装しました。トグルボタンには fieldset や sr-only を活用し、スクリーンリーダーやフォーカスリングの視認性にも対応しています。
+
+UX / UIの向上
+
+背景に溶け込むグラスモーフィズムを取り入れたモダンなデザインに統一しました。
+
+前回選択した設定を localStorage に保存し、再訪問時に復元されるように拡張しています（Next.js特有のハイドレーションエラーも対策済み）。
+
+7日間のデータ表示時は、X軸のラベルやドットが密になりすぎないよう、12時間間隔で間引いて表示するカスタムロジックを実装し、視認性を担保しました。
+
+生成AIの積極的な活用
+
+開発スピードと品質向上のため、生成AIをペアプログラミングのパートナーとして活用しました。主に要件定義の壁打ち、UIデザインのブレインストーミング、Tailwind CSSの複雑なクラス構築などに利用し、最終的なアーキテクチャ設計やアクセシビリティの担保は自身で検証しながら実装しています。
+
+5. 既知の制約
+Rechartsの型定義に関する警告
+
+Rechartsの特定のコンポーネント（TooltipやCustomDotなど）において、ライブラリ側の型定義の都合上、一部のファイル（WeatherChart.tsx等）でESLintの厳密な型チェックを意図的にバイパスしている箇所があります。ブラウザでの実際の動作には影響ありません。
+
+極小画面でのツールチップ表示
+
+画面幅が非常に狭いスマートフォン端末（幅320px以下など）で7日間のグラフを表示した際、ツールチップが画面端でやや見切れる可能性があります。
