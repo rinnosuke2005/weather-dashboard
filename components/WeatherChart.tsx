@@ -72,9 +72,6 @@ export default function WeatherChart({
   const lineColor = getLineColor(metric);
   const gradientId = `gradient-${metric}`;
 
-  // ==========================================
-  // ★ 新機能：12時間ごとだけ表示するためのカスタム関数
-  // ==========================================
   // 1. カスタムドット
   const renderCustomDot = (props: any) => {
     const { cx, cy, payload } = props;
@@ -100,7 +97,7 @@ export default function WeatherChart({
       return null;
     }
 
-    // 48時間の時はすべてのポイントにドットを表示（以前のいい感じのスタイル）
+    // 48時間の時はすべてのポイントにドットを表示
     return (
       <circle
         key={`dot-${payload.time}`}
@@ -179,7 +176,6 @@ export default function WeatherChart({
               vertical={false}
             />
 
-            {/* ★ 修正: カスタムラベル関数を適用。interval={0} で間引きをRecharts任せにせず自分で制御！ */}
             <XAxis
               dataKey="time"
               tick={renderCustomAxisTick}
@@ -222,7 +218,7 @@ export default function WeatherChart({
               wrapperStyle={{ paddingTop: "40px" }}
             />
 
-            {/* ★ 修正: カスタムドット関数を適用 */}
+            {/* カスタムドット関数を適用 */}
             <Area
               type="monotone"
               dataKey={metric}

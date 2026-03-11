@@ -11,7 +11,7 @@ export const useWeatherData = (
   // 1. 選ばれている都市の「緯度・経度」を取得
   const { lat, lon } = CITY_COORDINATES[city];
 
-  // 2. 期間（48時間 or 7日間）から、APIに渡す日数を決定
+  // 2. 期間から、APIに渡す日数を決定
   const forecastDays = range === "48h" ? 2 : 7;
 
   // 3. APIのURLを動的に組み立てる
@@ -38,7 +38,6 @@ export const useWeatherData = (
     });
   }
 
-  // 6. page.tsx で使いたいものだけを「おまとめセット」にして返す
   return {
     chartData,
     error,
