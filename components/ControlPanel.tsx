@@ -70,48 +70,48 @@ export default function ControlPanel({
         </select>
       </div>
 
-      {/* {3. 期間を選択} */}
-      <div className="flex flex-col flex-1">
+
+{/* {3. 期間を選択} */}
+      <div className="flex flex-col flex-1 border-none p-0 m-0">
         <div className={labelClass}>Range</div>
-        {/* ★ トグルの土台も透けさせる（bg-white/20） */}
         <div className="flex bg-white/20 p-1 rounded-xl h-11 border border-white/40 shadow-inner">
           <label
             className={`cursor-pointer flex-1 flex items-center justify-center rounded-lg text-sm font-bold transition-all duration-300 ${
               range === "48h" ? "bg-white/90 shadow-md text-blue-600 scale-[0.98]" : "text-gray-500 hover:text-gray-700 hover:bg-white/30"
-            }`}
+            } has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-400`}
           >
-            <input type="radio" value="48h" checked={range === "48h"} onChange={(e) => setRange(e.target.value)} className="hidden" />
+            <input type="radio" name="range" value="48h" checked={range === "48h"} onChange={(e) => setRange(e.target.value)} className="sr-only" />
             48時間
           </label>
           <label
             className={`cursor-pointer flex-1 flex items-center justify-center rounded-lg text-sm font-bold transition-all duration-300 ${
               range === "7days" ? "bg-white/90 shadow-md text-blue-600 scale-[0.98]" : "text-gray-500 hover:text-gray-700 hover:bg-white/30"
-            }`}
+            } has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-400`}
           >
-            <input type="radio" value="7days" checked={range === "7days"} onChange={(e) => setRange(e.target.value)} className="hidden" />
+            <input type="radio" name="range" value="7days" checked={range === "7days"} onChange={(e) => setRange(e.target.value)} className="sr-only" />
             7日間
           </label>
         </div>
       </div>
 
       {/* {4. 単位} */}
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 border-none p-0 m-0">
         <div className={labelClass}>Unit</div>
         <div className="flex bg-white/20 p-1 rounded-xl h-11 border border-white/40 shadow-inner">
           <label
             className={`cursor-pointer flex-1 flex items-center justify-center rounded-lg text-sm font-bold transition-all duration-300 ${
               unit === "celsius" ? "bg-white/90 shadow-md text-blue-600 scale-[0.98]" : "text-gray-500 hover:text-gray-700 hover:bg-white/30"
-            }`}
+            } has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-400`}
           >
-            <input type="radio" value="celsius" checked={unit === "celsius"} onChange={(e) => setUnit(e.target.value)} className="hidden" />
+            <input type="radio" name="unit" value="celsius" checked={unit === "celsius"} onChange={(e) => setUnit(e.target.value)} className="sr-only" />
             °C
           </label>
           <label
             className={`cursor-pointer flex-1 flex items-center justify-center rounded-lg text-sm font-bold transition-all duration-300 ${
               unit === "fahrenheit" ? "bg-white/90 shadow-md text-blue-600 scale-[0.98]" : "text-gray-500 hover:text-gray-700 hover:bg-white/30"
-            }`}
+            } has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-400`}
           >
-            <input type="radio" value="fahrenheit" checked={unit === "fahrenheit"} onChange={(e) => setUnit(e.target.value)} className="hidden" />
+            <input type="radio" name="unit" value="fahrenheit" checked={unit === "fahrenheit"} onChange={(e) => setUnit(e.target.value)} className="sr-only" />
             °F
           </label>
         </div>
