@@ -1,8 +1,6 @@
 // app/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import useSWR from "swr";
 import ControlPanel from "../components/ControlPanel";
 import WeatherChart from "../components/WeatherChart";
 import { useWeatherData } from "@/hooks/useWeatherData";

@@ -2,8 +2,7 @@
 import { useState, useEffect } from "react";
 
 export const useWeatherSettings = () => {
-
-    const [city, setCity] = useState("tokyo");
+  const [city, setCity] = useState("tokyo");
   const [metric, setMetric] = useState("temperature_2m");
   const [range, setRange] = useState("48h");
   const [unit, setUnit] = useState<string>("celsius");
@@ -13,7 +12,6 @@ export const useWeatherSettings = () => {
     const savedMetric = localStorage.getItem("weather_metric");
     const savedRange = localStorage.getItem("weather_range");
     const savedUnit = localStorage.getItem("weather_unit");
-
     if (savedCity) setCity(savedCity);
     if (savedMetric) setMetric(savedMetric);
     if (savedRange) setRange(savedRange);
@@ -28,9 +26,13 @@ export const useWeatherSettings = () => {
   }, [city, metric, range, unit]);
 
   return {
-    city, setCity,
-    metric, setMetric,
-    range, setRange,
-    unit, setUnit,
+    city,
+    setCity,
+    metric,
+    setMetric,
+    range,
+    setRange,
+    unit,
+    setUnit,
   };
 };
